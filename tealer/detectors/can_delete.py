@@ -64,6 +64,7 @@ class CanDelete(AbstractDetector):  # pylint: disable=too-few-public-methods
             skip_true = isinstance(ins, BZ) and prev_was_equal
 
             prev_was_equal = False
+
             if isinstance(ins, Eq) and len(stack) >= 2:
                 one = stack[-1]
                 two = stack[-2]
