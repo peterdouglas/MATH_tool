@@ -3,4 +3,5 @@
 #from tealer.detectors.can_update import CanUpdate
 #from tealer.detectors.groupsize import MissingGroupSize
 #from tealer.detectors.rekeyto import MissingRekeyTo
-from tealer.detectors.input_validation_check import InputValidationCheck
+from tealer.detectors.bSubtract import byteSubtract
+from tealer.detectors.mathploit import by1Math
