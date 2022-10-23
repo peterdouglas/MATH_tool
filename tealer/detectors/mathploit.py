@@ -3,9 +3,7 @@ from typing import List
 
 from tealer.detectors.abstract_detector import AbstractDetector, DetectorType
 from tealer.teal.basic_blocks import BasicBlock
-from tealer.teal.global_field import GroupSize
-from tealer.teal.instructions.instructions import Instruction,Bytec, Bytec0, Bytec1, Bytec2, Bytec3, BDiv, BMul, Itob, Txna, Return, Int, AppGlobalGet, AppGlobalGetEx
-from tealer.teal.instructions.transaction_field import ApplicationArgs
+from tealer.teal.instructions.instructions import Bytec, Bytec0, Bytec1, Bytec2, Bytec3, BDiv, BMul, Itob, AppGlobalGet, AppGlobalGetEx
 from tealer.teal.teal import Teal
 
 

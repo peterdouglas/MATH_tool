@@ -1,18 +1,22 @@
-# Tealer
-Tealer is a static analyzer for [Teal](https://developer.algorand.org/docs/features/asc1/) code. It parses the Teal program, and builds its CFG. The analyzer comes with a set of vulnerabilities detectors and printers allowing to quickly review the contracts.
+# Modified Algorand Tealer Helper (MATH)
+MATH is static analyzer for [Teal](https://developer.algorand.org/docs/features/asc1/) code. It parses the Teal program, and builds its CFG. This project has been built on top of the great work by Crytic on (Tealer)[https://github.com/crytic/tealer].
 
-- [Features](#features)
-- [How to install](#how-to-install)
-- [How to run](#how-to-run)
+This tool is a part of the unpublished paper *MATH - Finding and Fixing Exploits on Algorand*, and runs two detectors by default.
+
+- [Modified Algorand Tealer Helper (MATH)](#modified-algorand-tealer-helper-math)
+  - [Features](#features)
+    - [Detectors](#detectors)
+    - [Printers](#printers)
+  - [How to install](#how-to-install)
+  - [How to run](#how-to-run)
+    - [Example](#example)
 
 ## Features
 ### Detectors
  Num |   Check   |               What it Detects                |      Type
 --- | --- | --- | ---
-  1  | canDelete | Detect paths that can delete the application |    Stateful
-  2  | canUpdate | Detect paths that can update the application |    Stateful
-  3  | groupSize | Detect paths with a missing GroupSize check  | StatefulGroup
-  4  |  rekeyTo  |  Detect paths with a missing RekeyTo check   | StatefulGroup
+  1  | bSubtract | Detect instances of the byte subtraction vulnerability |    Stateful
+  2  | mathploit | Detect instances of the math exploit |    Stateful
 
 
 All the detectors are run by default
