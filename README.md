@@ -1,15 +1,15 @@
-# Modified Algorand Tealer Helper (MATH)
+![MATH - Modified Algorand Tealer Helper](MATH.png)
+***
 MATH is static analyzer for [Teal](https://developer.algorand.org/docs/features/asc1/) code. It parses the Teal program, and builds its CFG. This project has been built on top of the great work by Crytic on (Tealer)[https://github.com/crytic/tealer].
 
 This tool is a part of the unpublished paper *MATH - Finding and Fixing Exploits on Algorand*, and runs two detectors by default.
 
-- [Modified Algorand Tealer Helper (MATH)](#modified-algorand-tealer-helper-math)
-  - [Features](#features)
-    - [Detectors](#detectors)
-    - [Printers](#printers)
-  - [How to install](#how-to-install)
-  - [How to run](#how-to-run)
-    - [Example](#example)
+- [Features](#features)
+  - [Detectors](#detectors)
+  - [Printers](#printers)
+- [How to install](#how-to-install)
+- [How to run](#how-to-run)
+  - [Example](#example)
 
 ## Features
 ### Detectors
