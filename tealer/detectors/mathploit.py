@@ -3,7 +3,7 @@ from typing import List
 
 from tealer.detectors.abstract_detector import AbstractDetector, DetectorType
 from tealer.teal.basic_blocks import BasicBlock
-from tealer.teal.instructions.instructions import Bytec, Bytec0, Bytec1, Bytec2, Bytec3, BDiv, BMul, Itob, AppGlobalGet, AppGlobalGetEx
+from tealer.teal.instructions.instructions import BDiv, BMul, Itob, AppGlobalGet, AppGlobalGetEx, Mul, Mulw, Sub, BSubtract, Add, Addw, BAdd, BModulo
 from tealer.teal.teal import Teal
 
 
@@ -28,9 +28,18 @@ class by1Math(AbstractDetector):  # pylint: disable=too-few-public-methods
         super().__init__(teal)
         self.results_number = 0
         self.count = 0
-        self.blockStart = []
-        self.blockChunks = []
+        self.math_start = []
 
+    def _getLastItem(self, list):
+        if len(list) > 0:
+            return list[len(list) - 1]
+        return None
+    
+    def _isMath(self, ins):
+        if isinstance(ins, (Mul, Mulw, BMul, BDiv, Sub, BModulo, BSubtract, Add, Addw, BAdd)):
+            return True
+        return False
+    
     def _check_by1(
         self,
         bb: BasicBlock,
@@ -44,48 +53,52 @@ class by1Math(AbstractDetector):  # pylint: disable=too-few-public-methods
 
         current_path = current_path + [bb]
         has_mathploit = False
-        arg_prev = []
+        math_stack = []
         for ins in bb.instructions:
+            stack_ins = self._getLastItem(math_stack)
+
             if ins._comment == '// 1':
-                arg_prev = []
-                for line_num in self.blockStart:
-                    if int(line_num) == int(ins.prev[0]._line):
-                        break
-                else:
-                    arg_prev.append(ins.prev[0])
-                    arg_prev.append(ins)
-                    continue
+                math_stack = []
+                math_stack.append(ins)
+                continue
+            
+            if stack_ins == None:
+                continue
 
             if isinstance(ins, Itob):
-                if len(arg_prev) > 1:
-                    arg_prev.append(ins)
+                if stack_ins._comment =='// 1':
+                    math_stack.append(ins)
                     continue
-            
-            if isinstance(ins, (Bytec, Bytec0, Bytec1, Bytec2, Bytec3)):
-                if len(arg_prev) > 1:
-                    arg_prev.append(ins)
-                    continue
-            
 
             if isinstance(ins, (AppGlobalGet, AppGlobalGetEx)):
-                if len(arg_prev) > 1:
-                    arg_prev.append(ins)
-                    continue
-
-            if isinstance(ins, (BDiv, BMul)) and len(arg_prev) > 3:
-                arg_prev.append(ins)
-                print('Mathsploit found starting on line: ', arg_prev[0]._line)
-                self.blockStart.append(arg_prev[0]._line)
-                self.blockChunks.append(arg_prev)
-                has_mathploit = True
-                #for inst in arg_prev:
-                #    print(inst._line, inst, inst._comment)
+                if isinstance(stack_ins, Itob) or stack_ins._comment == '// 1':
+                    math_stack.append(ins)
+                else: 
+                    math_stack = []
+                continue
+            
+            if self._isMath(ins):
+                if isinstance(ins, (Mul, Mulw, BMul)):
+                    if isinstance(stack_ins, (AppGlobalGet, AppGlobalGetEx)):
+                        math_stack.append(ins)
+                        if math_stack[0]._line not in self.math_start:
+                            self.math_start.append(math_stack[0]._line)
+                            print('Mathsploit found starting on line: ', math_stack[0]._line)
+                            has_mathploit = True
+                        #self.math_start.append(math_stack[0]._line)
+                        #print('Mathsploit found starting on line: ', math_stack[0]._line)
+                        #has_mathploit = True
+                        #for inst in arg_prev:
+                        #    print(inst._line, inst, inst._comment)
+                else:
+                    math_stack = []
                 
-            arg_prev = []
         else:   
             if has_mathploit:
+                print('found mathploit')
                 filename = Path(f"math_exploit_{self.results_number}.dot")
                 self.results_number += 1
+                
                 all_results.append(Result(filename, current_path, self.results_number))
 
         for next_bb in bb.next:
