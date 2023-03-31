@@ -3,7 +3,8 @@ from typing import List
 
 from tealer.detectors.abstract_detector import AbstractDetector, DetectorType
 from tealer.teal.basic_blocks import BasicBlock
-from tealer.teal.instructions.instructions import BDiv, BMul, Itob, AppGlobalGet, AppGlobalGetEx, Mul, Mulw, Sub, BSubtract, Add, Addw, BAdd, BModulo
+from tealer.teal.instructions.transaction_field import TypeEnum
+from tealer.teal.instructions.instructions import Global, BDiv, BMul, Itob, Gtxn, AppGlobalGet, AppGlobalGetEx, Mul, Mulw, Sub, BSubtract, Add, Addw, BAdd, BModulo, BZero, Dup, AppLocalPut
 from tealer.teal.teal import Teal
 
 
@@ -36,7 +37,8 @@ class by1Math(AbstractDetector):  # pylint: disable=too-few-public-methods
         return None
     
     def _isMath(self, ins):
-        if isinstance(ins, (Mul, Mulw, BMul, BDiv, Sub, BModulo, BSubtract, Add, Addw, BAdd)):
+        if isinstance(ins, (Mul, Mulw, BMul, BDiv, Sub, BModulo, BSubtract, Add, 
+                            Addw, BAdd, BZero, Dup)):
             return True
         return False
     
@@ -58,17 +60,19 @@ class by1Math(AbstractDetector):  # pylint: disable=too-few-public-methods
             stack_ins = self._getLastItem(math_stack)
 
             if ins._comment == '// 1':
-                math_stack = []
-                math_stack.append(ins)
+                if not isinstance(ins._prev[0], Global) and not (
+                    isinstance(ins._prev[0],Gtxn) and isinstance(ins._prev[0].field,
+                                                                  TypeEnum)):
+                    math_stack = []
+                    math_stack.append(ins)
                 continue
             
-            if stack_ins == None:
+            if stack_ins is None:
                 continue
 
-            if isinstance(ins, Itob):
-                if stack_ins._comment =='// 1':
-                    math_stack.append(ins)
-                    continue
+            if isinstance(ins, Itob) and stack_ins._comment =='// 1':
+                math_stack.append(ins)
+                continue
 
             if isinstance(ins, (AppGlobalGet, AppGlobalGetEx)):
                 if isinstance(stack_ins, Itob) or stack_ins._comment == '// 1':
@@ -81,17 +85,22 @@ class by1Math(AbstractDetector):  # pylint: disable=too-few-public-methods
                 if isinstance(ins, (Mul, Mulw, BMul)):
                     if isinstance(stack_ins, (AppGlobalGet, AppGlobalGetEx)):
                         math_stack.append(ins)
-                        if math_stack[0]._line not in self.math_start:
-                            self.math_start.append(math_stack[0]._line)
-                            print('Mathsploit found starting on line: ', math_stack[0]._line)
-                            has_mathploit = True
-                        #self.math_start.append(math_stack[0]._line)
-                        #print('Mathsploit found starting on line: ', math_stack[0]._line)
-                        #has_mathploit = True
-                        #for inst in arg_prev:
-                        #    print(inst._line, inst, inst._comment)
+
                 else:
                     math_stack = []
+                continue
+            
+            if isinstance(ins, AppLocalPut):
+                if isinstance(stack_ins, (Mul, Mulw, BMul)):
+                    math_stack.append(ins)
+                    #if math_stack[0]._line not in self.math_start:
+                    #    self.math_start.append(math_stack[0]._line)
+                    print('Mathsploit found starting on line: ', 
+                              math_stack[0]._line) 
+                    has_mathploit = True
+                else:
+                    math_stack = []
+                continue
                 
         else:   
             if has_mathploit:
